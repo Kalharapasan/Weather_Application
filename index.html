@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#74b9ff">
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .weather-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .weather-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: #2d3436;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .search-input:focus {
+            border-color: #74b9ff;
+            box-shadow: 0 0 10px rgba(116, 185, 255, 0.3);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #74b9ff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .search-btn:hover {
+            background: #0984e3;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .search-btn::after {
+            content: '🔍';
+        }
+
+        .auto-location {
+            margin-bottom: 20px;
+        }
+
+        .location-btn {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+            font-weight: 500;
+            min-height: 44px;
+        }
+
+        .location-btn:hover {
+            background: linear-gradient(135deg, #00a085, #00b894);
+            transform: translateY(-2px);
+        }
+
+        .location-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auto-detect-info {
+            background: rgba(0, 184, 148, 0.1);
+            border: 1px solid rgba(0, 184, 148, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #00a085;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auto-detect-info.show {
+            display: block;
+        }
+
+        .weather-info {
+            display: none;
+        }
+
+        .weather-info.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .location {
+            font-size: 1.5em;
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .weather-icon {
+            font-size: 4em;
+            margin: 20px 0;
+            display: block;
+        }
+
+        .temperature {
+            font-size: 3.5em;
+            color: #0984e3;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .description {
+            font-size: 1.2em;
+            color: #636e72;
+            margin-bottom: 25px;
+            text-transform: capitalize;
+            word-break: break-word;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .detail-item {
+            background: rgba(116, 185, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            transition: transform 0.2s ease;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .detail-item:hover {
+            transform: scale(1.05);
+        }
+
+        .detail-label {
+            font-size: 0.9em;
+            color: #636e72;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .error-message {
+            color: #e17055;
+            background: rgba(225, 112, 85, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .loading {
+            display: none;
+            color: #74b9ff;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .weather-container {
+                padding: 20px;
+                margin: 10px;
+                max-width: 100%;
+                border-radius: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+            
+            .search-input {
+                padding: 12px 45px 12px 18px;
+                font-size: 16px;
+            }
+            
+            .search-btn {
+                width: 35px;
+                height: 35px;
+                right: 4px;
+                min-width: 35px;
+                min-height: 35px;
+            }
+            
+            .location-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .auto-detect-info {
+                padding: 12px;
+                font-size: 13px;
+            }
+            
+            .temperature {
+                font-size: 2.8em;
+                margin: 10px 0;
+            }
+            
+            .weather-icon {
+                font-size: 3.5em;
+                margin: 15px 0;
+            }
+            
+            .location {
+                font-size: 1.3em;
+                margin-bottom: 8px;
+            }
+            
+            .description {
+                font-size: 1.1em;
+                margin-bottom: 20px;
+            }
+            
+            .weather-details {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-top: 20px;
+            }
+            
+            .detail-item {
+                padding: 12px;
+                border-radius: 8px;
+            }
+            
+            .detail-label {
+                font-size: 0.85em;
+            }
+            
+            .detail-value {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .weather-container {
+                padding: 15px;
+                margin: 5px;
+            }
+            
+            h1 {
+                font-size: 1.6em;
+            }
+            
+            .temperature {
+                font-size: 2.5em;
+            }
+            
+            .weather-icon {
+                font-size: 3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-container">
+        <h1>Weather App</h1>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Enter city name (e.g., Negombo, Colombo, Kandy)..." id="cityInput">
+            <button class="search-btn" id="searchBtn"></button>
+        </div>
+        
+        <div class="auto-location">
+            <button class="location-btn" id="locationBtn">📍 Use My Current Location</button>
+        </div>
+        
+        <div class="auto-detect-info" id="autoDetectInfo"></div>
+        
+        <div class="loading" id="loading">Getting weather data</div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="weather-info" id="weatherInfo">
+            <div class="location" id="location"></div>
+            <div class="weather-icon" id="weatherIcon"></div>
+            <div class="temperature" id="temperature"></div>
+            <div class="description" id="description"></div>
+            
+            <div class="weather-details">
+                <div class="detail-item">
+                    <div class="detail-label">Feels like</div>
+                    <div class="detail-value" id="feelsLike"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Humidity</div>
+                    <div class="detail-value" id="humidity"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Wind Speed</div>
+                    <div class="detail-value" id="windSpeed"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Pressure</div>
+                    <div class="detail-value" id="pressure"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WeatherApp {
+            constructor() {
+                this.hasTriedGPS = false;
+                this.initializeElements();
+                this.addEventListeners();
+                this.loadCurrentLocationWeather();
+            }
+
+            initializeElements() {
+                this.cityInput = document.getElementById('cityInput');
+                this.searchBtn = document.getElementById('searchBtn');
+                this.locationBtn = document.getElementById('locationBtn');
+                this.autoDetectInfo = document.getElementById('autoDetectInfo');
+                this.loading = document.getElementById('loading');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.weatherInfo = document.getElementById('weatherInfo');
+                this.location = document.getElementById('location');
+                this.weatherIcon = document.getElementById('weatherIcon');
+                this.temperature = document.getElementById('temperature');
+                this.description = document.getElementById('description');
+                this.feelsLike = document.getElementById('feelsLike');
+                this.humidity = document.getElementById('humidity');
+                this.windSpeed = document.getElementById('windSpeed');
+                this.pressure = document.getElementById('pressure');
+            }
+
+            addEventListeners() {
+                this.searchBtn.addEventListener('click', () => this.searchWeather());
+                this.locationBtn.addEventListener('click', () => this.getCurrentLocationWeather());
+                this.cityInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchWeather();
+                    }
+                });
+            }
+
+            async loadCurrentLocationWeather() {
+                this.showAutoDetectInfo('🔍 Auto-detecting your location...');
+                
+                try {
+                    const location = await this.detectUserLocation();
+                    
+                    if (location) {
+                        this.showAutoDetectInfo(`📍 Detected location: ${location.city}, ${location.country}`);
+                        await this.getWeatherByCity(location.city);
+                    } else {
+                        this.showAutoDetectInfo('📍 Using default location: Negombo, Sri Lanka');
+                        await this.getWeatherByCity('Negombo');
+                    }
+                } catch (error) {
+                    console.error('Auto-detection error:', error);
+                    this.showAutoDetectInfo('📍 Using default location: Negombo, Sri Lanka');
+                    await this.getWeatherByCity('Negombo');
+                }
+            }
+
+            async getCurrentLocationWeather() {
+                this.locationBtn.disabled = true;
+                this.locationBtn.textContent = '📍 Getting Location...';
+                
+                try {
+                    const location = await this.detectUserLocation(true);
+                    
+                    if (location) {
+                        this.showAutoDetectInfo(`📍 Location updated: ${location.city}, ${location.country}`);
+                        await this.getWeatherByCity(location.city);
+                    } else {
+                        this.showError('Could not detect your location. Please try entering a city manually.');
+                    }
+                } catch (error) {
+                    this.showError('Location access denied or unavailable.');
+                } finally {
+                    this.locationBtn.disabled = false;
+                    this.locationBtn.textContent = '📍 Use My Current Location';
+                }
+            }
+
+            async detectUserLocation(forceGPS = false) {
+                // Method 1: Try GPS Geolocation
+                if (navigator.geolocation && (forceGPS || !this.hasTriedGPS)) {
+                    this.hasTriedGPS = true;
+                    
+                    try {
+                        const position = await this.getGPSLocation();
+                        const location = this.coordsToLocation(position.coords.latitude, position.coords.longitude);
+                        if (location) return location;
+                    } catch (error) {
+                        console.log('GPS location failed:', error);
+                    }
+                }
+
+                // Method 2: Try timezone-based detection (fallback)
+                if (!forceGPS) {
+                    const location = this.getTimezoneLocation();
+                    if (location) return location;
+                }
+
+                return null;
+            }
+
+            getGPSLocation() {
+                return new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        resolve,
+                        reject,
+                        { timeout: 10000, enableHighAccuracy: true }
+                    );
+                });
+            }
+
+            getTimezoneLocation() {
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                
+                const timezoneMap = {
+                    'Asia/Colombo': { city: 'Negombo', country: 'Sri Lanka' },
+                    'Asia/Calcutta': { city: 'Colombo', country: 'Sri Lanka' },
+                    'Asia/Kolkata': { city: 'Colombo', country: 'Sri Lanka' },
+                    'Asia/Tokyo': { city: 'Tokyo', country: 'Japan' },
+                    'Europe/London': { city: 'London', country: 'UK' },
+                    'America/New_York': { city: 'New York', country: 'USA' },
+                    'America/Los_Angeles': { city: 'Los Angeles', country: 'USA' }
+                };
+
+                return timezoneMap[timezone] || null;
+            }
+
+            coordsToLocation(lat, lon) {
+                // Sri Lanka bounds: 5.9-9.9 N, 79.4-81.9 E
+                if (lat >= 5.9 && lat <= 9.9 && lon >= 79.4 && lon <= 81.9) {
+                    // Western Province (Negombo area)
+                    if (lat >= 6.8 && lat <= 7.5 && lon >= 79.6 && lon <= 80.2) {
+                        return { city: 'Negombo', country: 'Sri Lanka' };
+                    }
+                    // Colombo area
+                    else if (lat >= 6.8 && lat <= 7.0 && lon >= 79.8 && lon <= 80.0) {
+                        return { city: 'Colombo', country: 'Sri Lanka' };
+                    }
+                    // Central Province (Kandy area)
+                    else if (lat >= 7.0 && lat <= 7.5 && lon >= 80.5 && lon <= 81.0) {
+                        return { city: 'Kandy', country: 'Sri Lanka' };
+                    }
+                    // Southern Province (Galle area)
+                    else if (lat >= 6.0 && lat <= 6.5 && lon >= 80.0 && lon <= 80.5) {
+                        return { city: 'Galle', country: 'Sri Lanka' };
+                    }
+                    // Default to Colombo for other Sri Lankan coordinates
+                    return { city: 'Colombo', country: 'Sri Lanka' };
+                }
+                
+                return null;
+            }
+
+            async searchWeather() {
+                const city = this.cityInput.value.trim();
+                if (!city) {
+                    this.showError('Please enter a city name');
+                    return;
+                }
+                
+                await this.getWeatherByCity(city);
+            }
+
+            async getWeatherByCity(city) {
+                try {
+                    this.showLoading();
+                    this.hideError();
+                    this.hideWeatherInfo();
+
+                    const mockData = this.getMockWeatherData(city);
+                    
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    this.displayWeatherData(mockData);
+                } catch (error) {
+                    console.error('Error fetching weather data:', error);
+                    this.showError('Failed to fetch weather data. Please try again.');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            getMockWeatherData(cityName = '') {
+                const cities = {
+                    'negombo': {
+                        name: 'Negombo',
+                        country: 'LK',
+                        temp: 29,
+                        feels_like: 33,
+                        humidity: 78,
+                        pressure: 1012,
+                        wind_speed: 4.2,
+                        description: 'partly cloudy with sea breeze',
+                        icon: '🌤️'
+                    },
+                    'colombo': {
+                        name: 'Colombo',
+                        country: 'LK',
+                        temp: 31,
+                        feels_like: 36,
+                        humidity: 75,
+                        pressure: 1011,
+                        wind_speed: 3.8,
+                        description: 'warm and humid',
+                        icon: '☀️'
+                    },
+                    'kandy': {
+                        name: 'Kandy',
+                        country: 'LK',
+                        temp: 26,
+                        feels_like: 28,
+                        humidity: 82,
+                        pressure: 1015,
+                        wind_speed: 2.1,
+                        description: 'cloudy with mountain mist',
+                        icon: '☁️'
+                    },
+                    'galle': {
+                        name: 'Galle',
+                        country: 'LK',
+                        temp: 28,
+                        feels_like: 32,
+                        humidity: 80,
+                        pressure: 1013,
+                        wind_speed: 5.5,
+                        description: 'coastal breeze',
+                        icon: '🌊'
+                    },
+                    'london': {
+                        name: 'London',
+                        country: 'GB',
+                        temp: 18,
+                        feels_like: 16,
+                        humidity: 65,
+                        pressure: 1013,
+                        wind_speed: 3.5,
+                        description: 'partly cloudy',
+                        icon: '⛅'
+                    }
+                };
+
+                const cityKey = cityName.toLowerCase() || 'negombo';
+                
+                if (cities[cityKey]) {
+                    return cities[cityKey];
+                }
+
+                // Generate random data for unknown cities
+                return {
+                    name: cityName || 'Current Location',
+                    country: 'XX',
+                    temp: Math.floor(Math.random() * 8) + 26,
+                    feels_like: Math.floor(Math.random() * 8) + 28,
+                    humidity: Math.floor(Math.random() * 20) + 70,
+                    pressure: Math.floor(Math.random() * 10) + 1010,
+                    wind_speed: (Math.random() * 6 + 2).toFixed(1),
+                    description: ['sunny and hot', 'partly cloudy', 'humid with scattered clouds', 'warm tropical weather'][Math.floor(Math.random() * 4)],
+                    icon: ['☀️', '🌤️', '⛅', '🌞'][Math.floor(Math.random() * 4)]
+                };
+            }
+
+            displayWeatherData(data) {
+                this.location.textContent = `${data.name}, ${data.country}`;
+                this.weatherIcon.textContent = data.icon;
+                this.temperature.textContent = `${data.temp}°C`;
+                this.description.textContent = data.description;
+                this.feelsLike.textContent = `${data.feels_like}°C`;
+                this.humidity.textContent = `${data.humidity}%`;
+                this.windSpeed.textContent = `${data.wind_speed} m/s`;
+                this.pressure.textContent = `${data.pressure} hPa`;
+
+                this.showWeatherInfo();
+            }
+
+            showLoading() {
+                this.loading.classList.add('show');
+            }
+
+            hideLoading() {
+                this.loading.classList.remove('show');
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+            }
+
+            hideError() {
+                this.errorMessage.style.display = 'none';
+            }
+
+            showWeatherInfo() {
+                this.weatherInfo.classList.add('show');
+            }
+
+            hideWeatherInfo() {
+                this.weatherInfo.classList.remove('show');
+            }
+
+            showAutoDetectInfo(message) {
+                this.autoDetectInfo.textContent = message;
+                this.autoDetectInfo.classList.add('show');
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    this.autoDetectInfo.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        // Initialize the weather app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WeatherApp();
+        });
+    </script>
+</body>
+</html>
