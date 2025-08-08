@@ -3,6 +3,9 @@
 A simple static Weather App built as a single `index.html` file.  
 It features a responsive design, mock weather data, and optional location detection.
 
+<img width="1366" height="625" alt="image" src="https://github.com/user-attachments/assets/c06e3f8a-e9f3-47b6-906e-57748a0a8fea" />
+
+
 ## Files
 - `index.html` — Main application file (HTML, CSS, and JavaScript combined).
 
